@@ -95,11 +95,27 @@ ShopForge uses a **two-tier test split** for learning and assessment:
 The `.github/workflows/grade.yml` workflow runs on every pull request targeting `main`:
 
 1. Checks out the PR's merge ref (candidate code + grading baseline merged)
-2. Restores `tests/grading`, `package.json`, and `vitest.config.ts` from the base branch — so a PR cannot fake a pass by editing those files
-3. Installs dependencies with `npm ci`
-4. Runs `npm run test:grading`
+2. Restores `tests/grading`, `package.json`, `vitest.config.ts`, and `.github/grading-map.json` from the base branch — so a PR cannot fake a pass by editing those files
+3. **Scopes the run to the ticket the PR is for**, then installs with `npm ci` and runs `npm run test:grading`
 
-**Threat model (accurate):** Restoring grading tests and config from the base branch prevents a candidate PR from altering what gets tested or how. However, because GitHub runs the workflow file from the PR's merge ref, a collaborator with write access could still alter `grade.yml` itself. For this reason, **WorkSim grades authoritatively out-of-band and does not solely trust the in-repo check** (authoritative grading is finalized in M2.3).
+### Why scoping matters
+
+Every one of the sprint's bugs is planted in your repo's root commit from day one. An
+unscoped run therefore fails on the tickets you have not been assigned yet, so a
+perfectly correct day-1 PR would show a red check. That is noise, not signal.
+
+The workflow finds the ticket id in your **branch name**, then the **PR title**, then the
+**PR body** — first match wins — and removes the other tickets' grading files before
+running. Name your branch after the ticket and the check grades only your work:
+
+```
+git checkout -b ecom-114-short-description
+```
+
+If no ticket id is found anywhere, the workflow runs everything and says so in the job
+summary rather than pretending the result is meaningful.
+
+**Threat model (accurate):** Restoring grading tests and config from the base branch prevents a candidate PR from altering what gets tested or how, and the ticket is read from env vars rather than interpolated into the script, so a crafted PR title cannot execute code. However, because GitHub runs the workflow file from the PR's merge ref, a collaborator with write access could still alter `grade.yml` itself — and scoping is by definition self-declared, so a PR can point the check at a ticket it did not fix. For both reasons, **WorkSim grades authoritatively out-of-band and does not solely trust the in-repo check**.
 
 ## Publishing as a Template Repo
 

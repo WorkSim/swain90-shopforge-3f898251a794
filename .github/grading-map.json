@@ -1,0 +1,11 @@
+{
+  "ECOM-114": [
+    "tests/grading/coupon.test.ts"
+  ],
+  "ECOM-127": [
+    "tests/grading/stock.test.ts"
+  ],
+  "ECOM-141": [
+    "tests/grading/tax.test.ts"
+  ]
+}
