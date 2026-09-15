@@ -53,7 +53,10 @@ export function discountCents(
 ): number {
   if (!coupon) return 0;
   if (coupon.type === "percent") {
-    return coupon.value * 100;
+    // Percent coupons are a share of the subtotal, not a flat cent amount.
+    // roundCents keeps the result on a whole cent — the same guard taxCents
+    // already uses — so a 10% coupon on $19.99 cannot leave a fraction behind.
+    return roundCents((subtotal * coupon.value) / 100);
   }
   // fixed — cap at subtotal so discount never exceeds what's owed
   return Math.min(coupon.value, subtotal);
