@@ -22,6 +22,12 @@ export function addToCart(
 ): CartLine[] {
   const existing = cart.find((line) => line.productId === product.id);
   const totalQty = (existing?.qty ?? 0) + qty;
+  // Checked against the MERGED total, not the incoming qty, and before either
+  // branch below — adding 3 to an existing 2 must fail on a stock of 4 just as
+  // surely as asking for 5 outright.
+  if (product.stock < totalQty) {
+    throw new Error("out of stock");
+  }
   if (existing) {
     return cart.map((line) =>
       line.productId === product.id ? { ...line, qty: totalQty } : line
